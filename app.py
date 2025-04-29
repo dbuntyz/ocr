@@ -72,9 +72,12 @@ def index():
             file.save(save_path)
 
             text_output = extract_text(save_path)
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
             session["chat_history"].append({
                 "filename": filename,
-                "text": text_output
+                "text": text_output,
+                "timestamp": timestamp
             })
             session.modified = True
 

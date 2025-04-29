@@ -2,125 +2,143 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>OCR Chat Extractor</title>
+  <title>OCR Chat Interface</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    /* Hide the default file input */
-    #file-input {
-      display: none;
-    }
-
-    /* Thumbnail styles */
-    .thumbnail {
-      width: 50px;
-      height: 50px;
-      object-fit: cover;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .upload-icon {
-      font-size: 24px;
-      cursor: pointer;
-      margin-right: 10px;
-    }
-
-    .input-area {
-      display: flex;
-      align-items: center;
-      padding: 10px;
-      background-color: #fafafa;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 10;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
 <button id="toggle-theme">🌙</button>
 
-<div class="chat-container" id="chat-container">
-  {% for message in messages %}
-    <div class="message user">
-      📤 <img src="{{ url_for('uploaded_file', filename=message.filename) }}" class="thumbnail" onclick="previewImage(this.src)">
-      <div class="timestamp">{{ message.timestamp }}</div>
+<div id="chat-wrapper">
+  <div id="chat-container">
+    {% for message in messages %}
+      <!-- User Message -->
+      <div class="message user-message">
+        <div class="message-content">
+          <img src="{{ url_for('uploaded_file', filename=message.filename) }}" class="thumbnail" onclick="previewImage(this.src)">
+        </div>
+        <div class="timestamp">{{ message.timestamp }}</div>
+      </div>
+      <!-- System (Bot) Message -->
+      <div class="message system-message">
+        <div class="message-content">{{ message.text }}</div>
+        <div class="timestamp">{{ message.timestamp }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Image Preview -->
+  <canvas id="canvas-preview" style="display: none;"></canvas>
+
+  <form id="upload-form" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" id="file-input" accept="image/*,.pdf" hidden>
+    <div id="upload-box">
+      <label for="file-input" id="upload-label">📎 Click, drag or paste here to upload</label>
+      <div id="thumbnail-container"></div>
+      <button type="submit" id="send-button">Submit</button>
     </div>
-    <div class="message bot">
-      {{ message.text }}
-      <div class="timestamp">{{ message.timestamp }}</div>
-    </div>
-  {% endfor %}
+  </form>
 </div>
 
-<form id="upload-form" method="post" enctype="multipart/form-data">
-  <!-- Hidden file input -->
-  <input type="file" name="file" id="file-input" accept="image/*">
-</form>
-
-<div class="input-area">
-  <!-- Custom upload icon -->
-  <label for="file-input" class="upload-icon" title="Upload Image">📎</label>
-
-  <!-- Image thumbnail that will show after upload -->
-  <div id="thumbnail-container"></div>
-
-  <textarea id="message-input" placeholder="Type a message..." rows="1"></textarea>
-  <button type="submit" form="upload-form" id="send-button">➤</button>
-</div>
-
-<canvas id="canvas-preview"></canvas>
-
-<div id="image-preview-modal" onclick="this.style.display='none'">
-  <img src="" id="preview-image">
+<div id="image-preview-modal" class="image-modal" onclick="this.classList.remove('active')">
+  <img src="" id="preview-image" alt="Preview">
 </div>
 
 <script>
   const chatContainer = document.getElementById("chat-container");
   const fileInput = document.getElementById("file-input");
+  const dropArea = document.getElementById("upload-box");
   const thumbnailContainer = document.getElementById("thumbnail-container");
+  const previewImage = document.getElementById("preview-image");
+  const previewModal = document.getElementById("image-preview-modal");
+  const canvasPreview = document.getElementById("canvas-preview");
 
-  // Auto-scroll to bottom on load
   window.onload = () => {
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    scrollToLatestMessage();
   };
 
-  // Handle image file processing and canvas preview
-  function handleImage(file) {
+  function scrollToLatestMessage() {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function handleFile(file) {
     const reader = new FileReader();
     reader.onload = function (e) {
       const img = new Image();
-      img.onload = function () {
-        // Show the image as a thumbnail
-        const thumbnail = document.createElement('img');
-        thumbnail.src = e.target.result;
-        thumbnail.classList.add('thumbnail');
-        thumbnailContainer.innerHTML = ''; // Clear previous thumbnail
-        thumbnailContainer.appendChild(thumbnail); // Add new thumbnail
-      };
       img.src = e.target.result;
+
+      img.onload = function() {
+        // Display image preview in thumbnail
+        thumbnailContainer.innerHTML = ''; // Clear the previous thumbnail
+        const thumbnailImg = document.createElement("img");
+        thumbnailImg.src = e.target.result;
+        thumbnailImg.className = "thumbnail";
+        thumbnailContainer.appendChild(thumbnailImg);
+
+        // Show canvas preview and draw the image on canvas
+        canvasPreview.style.display = "block";  // Show the canvas preview
+        const ctx = canvasPreview.getContext("2d");
+        canvasPreview.width = img.width;
+        canvasPreview.height = img.height;
+        ctx.clearRect(0, 0, canvasPreview.width, canvasPreview.height); // Clear any previous content
+        ctx.drawImage(img, 0, 0);
+      };
     };
-    reader.readAsDataURL(file); // Read the image as DataURL
+    reader.readAsDataURL(file);
   }
 
-  // Manual file selection handler
   fileInput.addEventListener("change", () => {
     const file = fileInput.files[0];
-    if (file) handleImage(file);
+    if (file) handleFile(file);
   });
 
-  // Dark mode toggle
-  const toggleBtn = document.createElement('button');
-  toggleBtn.id = "dark-mode-toggle";
-  toggleBtn.textContent = "🌙";
-  document.body.appendChild(toggleBtn);
-  
-  toggleBtn.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-    toggleBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️" : "🌙";
+  dropArea.addEventListener("dragover", e => {
+    e.preventDefault();
+    dropArea.classList.add("dragover");
   });
+
+  dropArea.addEventListener("dragleave", () => {
+    dropArea.classList.remove("dragover");
+  });
+
+  dropArea.addEventListener("drop", e => {
+    e.preventDefault();
+    dropArea.classList.remove("dragover");
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      fileInput.files = e.dataTransfer.files;
+      handleFile(file);
+    }
+  });
+
+  // Paste support
+  window.addEventListener("paste", e => {
+    const items = e.clipboardData.items;
+    for (let item of items) {
+      if (item.type.startsWith("image")) {
+        const file = item.getAsFile();
+        fileInput.files = new DataTransfer().items.add(file).files;
+        handleFile(file);
+      }
+    }
+  });
+
+  document.getElementById("toggle-theme").onclick = () => {
+    document.body.classList.toggle("dark-mode");
+    document.getElementById("toggle-theme").textContent = document.body.classList.contains("dark-mode") ? "☀️" : "🌙";
+  };
+
+  function previewImage(src) {
+    previewImage.src = src;
+    previewModal.classList.add("active");
+  }
+
+  // Ensure scrolls to the latest message after submitting a new message or image
+  function submitForm() {
+    // Your form submit logic here
+    scrollToLatestMessage();
+  }
 </script>
 
 </body>

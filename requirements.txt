@@ -1,0 +1,6 @@
+python-doctr==0.6.0
+tensorflow==2.11.0
+pytesseract
+tf2onnx
+flask
+Pillow
