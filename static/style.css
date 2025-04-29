@@ -1,0 +1,147 @@
+/* Basic Styles for Chat UI */
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  background-color: #f5f5f5;
+}
+
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 10px;
+  margin-bottom: 80px; /* Space for the fixed footer */
+  max-width: 600px; /* Boxed width for chat */
+  margin-left: auto; /* Centering the chat container */
+  margin-right: auto; /* Centering the chat container */
+  border: 1px solid #ddd; /* Box border */
+  border-radius: 10px; /* Rounded corners */
+  background-color: #fff;
+}
+
+.message {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  width: fit-content;
+  max-width: 80%;
+}
+
+.user {
+  background-color: #e0f7fa;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.bot {
+  background-color: #f1f1f1;
+  align-self: flex-start;
+  margin-right: auto;
+}
+
+.timestamp {
+  font-size: 0.75em;
+  color: gray;
+  text-align: right;
+}
+
+.input-area {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #fff;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background-color: #fafafa;
+}
+
+textarea {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  margin-right: 10px;
+}
+
+button {
+  background-color: #00796b;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #004d40;
+}
+
+.thumbnail {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#toggle-theme {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+body.dark-mode {
+  background-color: #333;
+  color: #fff;
+}
+
+body.dark-mode .message {
+  background-color: #444;
+}
+
+body.dark-mode #chat-container {
+  background-color: #2c2c2c;
+}
+
+body.dark-mode .input-area {
+  background-color: #333;
+}
+
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.image-modal.active {
+  display: flex;
+}
+
+.image-modal img {
+  max-width: 80%;
+  max-height: 80%;
+}
+
+#canvas-preview {
+  display: none; /* Hide canvas by default */
+  width: 100%;   /* Make sure the canvas takes up the available space */
+  height: auto;  /* Maintain the aspect ratio */
+}
+

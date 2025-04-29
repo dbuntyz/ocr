@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OCR Chat Extractor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Hide the default file input */
+    #file-input {
+      display: none;
+    }
+
+    /* Thumbnail styles */
+    .thumbnail {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .upload-icon {
+      font-size: 24px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    .input-area {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background-color: #fafafa;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+<button id="toggle-theme">🌙</button>
+
+<div class="chat-container" id="chat-container">
+  {% for message in messages %}
+    <div class="message user">
+      📤 <img src="{{ url_for('uploaded_file', filename=message.filename) }}" class="thumbnail" onclick="previewImage(this.src)">
+      <div class="timestamp">{{ message.timestamp }}</div>
+    </div>
+    <div class="message bot">
+      {{ message.text }}
+      <div class="timestamp">{{ message.timestamp }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<form id="upload-form" method="post" enctype="multipart/form-data">
+  <!-- Hidden file input -->
+  <input type="file" name="file" id="file-input" accept="image/*">
+</form>
+
+<div class="input-area">
+  <!-- Custom upload icon -->
+  <label for="file-input" class="upload-icon" title="Upload Image">📎</label>
+
+  <!-- Image thumbnail that will show after upload -->
+  <div id="thumbnail-container"></div>
+
+  <textarea id="message-input" placeholder="Type a message..." rows="1"></textarea>
+  <button type="submit" form="upload-form" id="send-button">➤</button>
+</div>
+
+<canvas id="canvas-preview"></canvas>
+
+<div id="image-preview-modal" onclick="this.style.display='none'">
+  <img src="" id="preview-image">
+</div>
+
+<script>
+  const chatContainer = document.getElementById("chat-container");
+  const fileInput = document.getElementById("file-input");
+  const thumbnailContainer = document.getElementById("thumbnail-container");
+
+  // Auto-scroll to bottom on load
+  window.onload = () => {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  };
+
+  // Handle image file processing and canvas preview
+  function handleImage(file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        // Show the image as a thumbnail
+        const thumbnail = document.createElement('img');
+        thumbnail.src = e.target.result;
+        thumbnail.classList.add('thumbnail');
+        thumbnailContainer.innerHTML = ''; // Clear previous thumbnail
+        thumbnailContainer.appendChild(thumbnail); // Add new thumbnail
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file); // Read the image as DataURL
+  }
+
+  // Manual file selection handler
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (file) handleImage(file);
+  });
+
+  // Dark mode toggle
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = "dark-mode-toggle";
+  toggleBtn.textContent = "🌙";
+  document.body.appendChild(toggleBtn);
+  
+  toggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark-mode");
+    toggleBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️" : "🌙";
+  });
+</script>
+
+</body>
+</html>
